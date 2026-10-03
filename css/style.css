@@ -1,0 +1,535 @@
+:root{
+  --bg:#fbfaf7; --bg-2:#f4f2ed; --panel:#efece5;
+  --ink:#17170f; --ink-2:#46453d;
+  /* --bg だけでなく --bg-2 / --panel / 推す列の朱地の上でも AA(4.5:1) を満たす一番明るい値。
+     #6f6e64 は --panel の上で 4.35:1 しか無く、カード内の注記が全部落ちていた */
+  --muted:#6b6a60;
+  --don:#c0392b; --ka:#116d8c;
+  --line:#dedbd2; --line-2:#eae7df;
+  color-scheme:light;
+  --maxw:1080px; --sec-pad:clamp(56px,8vw,104px);
+  /* 本文のあとに来る内容ブロック（表・図・リスト・カード）の上余白。
+     以前は 24/28/30/36/38 と散っていて、値ごとの根拠が無かった */
+  --gap-block:clamp(22px,2.6vw,30px);
+  --fbody:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,sans-serif;
+  --fmono:"Space Mono",ui-monospace,monospace;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:var(--fbody); font-weight:400; line-height:1.7;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+a{ color:inherit; text-decoration:none; }
+/* 最終行が1〜2文字だけ残る「孤立行」を避ける。max-width の調整では幅ごとに再発するので
+   （52ch で 1200px だけ再発した）、折り返しの判断そのものをブラウザに任せる。
+   未対応のブラウザは無視するだけで、レイアウトは壊れない */
+/* 日本語を文節で折り返す（Chrome 119+。非対応ブラウザは従来どおり） */
+.hero-lead, .section .body, .note, .card .desc, figcaption, .parts .pd{ text-wrap:pretty; word-break:auto-phrase; }
+/* 見出しは行の長さを揃えたほうが締まる */
+.hero-parts h1, .section h2, .sub-h, .footer-close-lead{ text-wrap:balance; }
+::selection{ background:var(--ink); color:var(--bg); }
+:focus-visible{ outline:2px solid var(--don); outline-offset:3px; }
+
+/* ============ スキップリンク ============ */
+/* キーボードでヘッダーのリンク6本を毎回抜けなくて済むようにする。
+   Tab を1回押した瞬間だけ左上に出る（display:none だとフォーカスできないので位置で隠す） */
+/* fixed（ビューポート基準）にする。absolute だと文書の先頭が基準になり、
+   スクロールしてから Tab を押しても画面外に出たままになる */
+.skip-link{
+  position:fixed; left:10px; top:-64px; z-index:10;
+  padding:10px 18px; background:var(--don); color:var(--bg);
+  font-weight:700; font-size:14px;
+  transition:top .15s ease;
+}
+.skip-link:focus{ top:10px; }
+/* スキップ先。tabindex="-1" でフォーカスは受けるが、輪郭は出さない（クリックでも光ってしまうため） */
+.hero:focus{ outline:none; }
+
+/* ============ HEADER ============ */
+.site{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:20px 32px; flex-wrap:wrap;
+  padding:clamp(16px,2vw,22px) clamp(20px,5vw,44px);
+  border-bottom:1px solid var(--line);
+}
+.brand{
+  display:flex; align-items:center; gap:.6ch;
+  font-weight:900; font-size:clamp(19px,2vw,24px); letter-spacing:.01em;
+}
+.brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--don); display:inline-block; }
+.tagline{ margin-top:4px; font-size:13px; color:var(--muted); }
+/* ナビは6本。名前＋役割の2段で、開かずに行き先が分かるようにする */
+.site-nav{ display:flex; flex-wrap:wrap; }
+.site-nav a{
+  display:flex; flex-direction:column; gap:2px;
+  padding:7px 15px; border-left:1px solid var(--line);
+  font-weight:700; font-size:15px; color:var(--ink-2);
+  transition:color .15s ease, background .15s ease;
+}
+.site-nav a:last-child{ border-right:1px solid var(--line); }
+.site-nav a:hover{ color:var(--ink); background:var(--bg-2); }
+.site-nav a .ext{ font-weight:400; font-size:11px; color:var(--muted); }
+.site-nav a.shop{ color:var(--don); }
+
+/* ============ HERO: 部品構成 ============ */
+.hero{
+  /* フルスクリーンでは本文（--maxw 1080px）より広く取り、3Dを大きく見せる */
+  max-width:clamp(1080px,92vw,1480px); margin:0 auto;
+  padding:clamp(40px,6vw,76px) clamp(20px,5vw,44px);
+  /* 本文より広い分を右padding で吸収し、ヒーローのテキスト右端を本文カラムの右端に揃える。
+     はみ出した幅は左（3D側）に回るので、3Dは大きいまま */
+  padding-right:calc(clamp(20px,5vw,44px) + max(0px, (min(92vw,1480px) - var(--maxw)) / 2));
+  display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);
+  align-items:center; gap:clamp(28px,5vw,60px);
+  position:relative;
+  /* 3Dは基準枠（.hero-media）より大きく描かれるので、枠の高さだけでは下が切れる。
+     テキスト側が短くてもキャンバスの縦を確保するために下限を持たせる */
+  min-height:min(88vh,880px);
+}
+/* 3Dの見え位置・サイズを決める基準枠。描画自体は #stage（ヒーロー全体）が行うので clip しない。
+   DOM上は .hero-parts（見出しとCTA）のほうが先。キーボードで進むと分解スライダーより
+   見出し・CTAに先に入る順にしたいため。横並びのときの左右だけを order で作る */
+.hero-media{
+  order:1;
+  aspect-ratio:4 / 3; display:grid; place-items:center;
+  position:relative; z-index:1; pointer-events:none;
+}
+/* 本文はキャンバスより上。イベントもここで受けるのでテキスト上のホイールはページスクロールになる */
+.hero-parts{ order:2; position:relative; z-index:1; }
+.hero-media img{ display:block; width:100%; height:100%; object-fit:contain; padding:18px; transition:opacity .5s ease; }
+/* 3Dの操作案内。操作できるのはJS成功時だけなので、既定は非表示で exploded-view.js が出す */
+.stage-hint{
+  display:none; position:absolute; z-index:2;
+  left:clamp(20px,5vw,44px); bottom:clamp(18px,2.4vw,28px);
+  white-space:nowrap; pointer-events:none;
+  font-family:var(--fmono); font-size:11px; letter-spacing:.03em; color:var(--muted);
+}
+
+/* ---- ヒーロー3D分解ビュー ---- */
+/* JS/GLB失敗時は img（フォールバック）が表示されたまま残る。成功時に exploded-view.js が img をフェードアウトし stage をフェードインする */
+/* 位置とサイズは exploded-view.js の resize() が px で上書きする（デスクトップ=ヒーロー全体 / モバイル=枠内） */
+#stage{ position:absolute; left:0; top:0; width:100%; height:100%; z-index:0; opacity:0; visibility:hidden; transition:opacity .5s ease; }
+#stage.ready{ opacity:1; visibility:visible; }
+#stage canvas{ display:block; width:100%; height:100%; }
+/* 分解スライダーは右端の縦配置。背景なしで控えめにし、3Dを遮らない */
+.explode-ctrl{
+  position:absolute; top:50%; right:8px; transform:translateY(-50%); z-index:3;
+  display:none; flex-direction:column; align-items:center; gap:8px; pointer-events:auto;
+  font-family:var(--fmono); font-size:11px; color:var(--muted);
+  height:min(80%, 480px);
+}
+/* 触れる場所だと分かるように、ホバーで軌道を太くしつまみを濃くする（ページ最大の見せ場なので発見性を上げる） */
+.explode-ctrl:hover{ color:var(--ink-2); }
+.explode-ctrl:hover input[type=range]::-webkit-slider-runnable-track{ width:4px; background:var(--muted); }
+.explode-ctrl:hover input[type=range]::-moz-range-track{ width:4px; background:var(--muted); }
+.explode-ctrl .label{ letter-spacing:.14em; writing-mode:vertical-rl; }
+.explode-ctrl .val{ writing-mode:horizontal-tb; min-width:2.6em; text-align:center; }
+/* 縦スライダー（Chrome/Edge/Safari は縦表示、非対応ブラウザは横表示のまま動作する）。flex:1 でコンテナの残りを占める */
+.explode-ctrl input[type=range]{
+  flex:1; cursor:pointer;
+  -webkit-appearance:none; appearance:none; background:transparent;
+  writing-mode:vertical-lr; direction:rtl;
+  width:18px; min-height:60px;
+}
+.explode-ctrl input[type=range]::-webkit-slider-runnable-track{
+  width:3px; background:var(--line); border-radius:2px; transition:width .12s ease, background .12s ease;
+}
+.explode-ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none;
+  width:16px; height:16px; border-radius:50%; margin-left:-6.5px; background:var(--don);
+}
+.explode-ctrl input[type=range]::-moz-range-track{
+  width:3px; background:var(--line); border-radius:2px; transition:width .12s ease, background .12s ease;
+}
+.explode-ctrl input[type=range]::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%; border:none; background:var(--don);
+}
+/* h2 が 38px あるので、40px だと段差が2pxしかなく「ページ名」と「節の見出し」が同格に見える */
+.hero-parts h1{ font-weight:900; font-size:clamp(30px,3.4vw,46px); line-height:1.25; letter-spacing:.01em; }
+/* h1 の副題。プロジェクト名を名乗りつつ、何のプロジェクトかを1行で補う */
+/* 800 は読み込んでいないウェイトで、CSSのフォントマッチングで実際は900が当たっていた。
+   見た目を変えずに宣言を実態へ合わせる。読み込むのは 400 / 700 / 900 の3つだけ */
+.hero-sub{ display:block; margin-top:10px; font-weight:900; font-size:clamp(16px,1.7vw,21px); color:var(--ink); letter-spacing:.01em; }
+/* ファーストビューの1行定義。SNS/QRから飛んできた訪問者に「何のサイトか」を伝える */
+/* 48ch では最終行が「ん。」だけの30pxになり、行の落ち方が事故に見えていた。
+   52ch で2行に収まる。ついでに、実フォントとフォールバックで行数が変わらなくなるので
+   読み込み時のズレ（初期表示で28px＝1行ぶん）も消える */
+.hero-lead{ margin-top:clamp(16px,2vw,24px); max-width:52ch; font-size:15px; color:var(--ink-2); line-height:1.9; }
+/* 3経路CTA。作る=朱の塗り（推奨）、買う=朱の枠線、感度変更=枠線のみ。2色規律を保つ */
+.hero-cta{ margin-top:clamp(20px,2.4vw,28px); display:flex; flex-wrap:wrap; gap:10px; }
+.cta{
+  flex:1 1 0; display:flex; flex-direction:column; gap:3px;
+  padding:12px 18px; border:2px solid var(--line); background:transparent;
+  font-weight:700; font-size:15px; color:var(--ink); line-height:1.3;
+  transition:border-color .15s ease, background .15s ease;
+}
+.cta:hover{ border-color:var(--don); }
+.cta-don{ background:var(--don); border-color:var(--don); color:var(--bg); }
+.cta-don:hover{ background:color-mix(in srgb,var(--don) 88%,var(--bg)); }
+.cta-shop{ background:transparent; border-color:var(--don); color:var(--don); }
+.cta-shop:hover{ background:color-mix(in srgb,var(--don) 8%,transparent); }
+.cta .cta-sub{ font-weight:400; font-size:11px; color:var(--muted); }
+/* 感度変更セクションの単独ボタン。flex:1 のままだと1080px全幅に伸びて過剰になる */
+.tuning-cta{ max-width:420px; margin-top:var(--gap-block); }
+/* CTAの下に置く実演への1行。ボタンにすると4本目になって主導線がぼやけるので、朱の下線リンクに留める */
+.hero-proof{ margin-top:16px; font-size:14px; }
+/* 下線はラベルだけに掛ける。リンク全体に掛けると補足の小さい灰色文字の下まで朱の線が伸びる */
+.hero-proof a{ display:inline-flex; align-items:baseline; gap:.7ch; font-weight:700; }
+.hero-proof .lbl{ border-bottom:2px solid var(--don); }
+.hero-proof a:hover .lbl{ background:color-mix(in srgb,var(--don) 8%,transparent); }
+.hero-proof .ext{ font-weight:400; font-size:11px; color:var(--muted); }
+/* opacity:.8 だと朱地に対して 3.85:1 でAA未達だった。階層はサイズ(11px)とウェイト(400)で足りている */
+.cta-don .cta-sub{ color:var(--bg); }
+/* ファーストビューの3指標。「いくらで／どこまで公開されていて／何で動くか」を数値で即答する */
+.specs{
+  margin-top:clamp(22px,2.6vw,30px);
+  display:grid; grid-template-columns:repeat(3,auto); justify-content:space-between;
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+}
+.spec{ padding:14px 0; min-width:0; }
+.spec + .spec{ padding-left:clamp(12px,1.8vw,20px); border-left:1px solid var(--line-2); }
+.spec dt{ font-size:12px; color:var(--muted); letter-spacing:.08em; }
+/* 値は折り返させない。「すべて公開」が2行に割れると数値パネルに見えなくなる */
+.spec-v{ margin-top:5px; font-weight:900; font-size:clamp(15px,1.5vw,22px); line-height:1.2; color:var(--ink); white-space:nowrap; }
+.spec-u{ font-family:var(--fmono); font-weight:700; font-size:.66em; color:var(--muted); }
+.spec-s{ margin-top:5px; font-size:11px; color:var(--muted); line-height:1.5; }
+/* 比較表セル内の小さな但し書き（例: 材料費のみ） */
+.cell-note{ font-weight:400; color:var(--muted); font-size:12px; }
+/* 7部品の構成リスト。1080px幅では1列だと間延びするので2段組にする */
+.parts{ margin-top:var(--gap-block); list-style:none; columns:2; column-gap:clamp(24px,4vw,48px); }
+.parts li{
+  display:grid; grid-template-columns:auto 1fr; column-gap:14px;
+  padding:12px 0; border-bottom:1px solid var(--line-2); break-inside:avoid;
+}
+.parts .pn{ font-family:var(--fmono); font-size:12px; color:var(--muted); padding-top:.35em; }
+.parts b{ font-weight:700; font-size:16px; }
+/* 「面だけは買う」を見出しと呼応させるための札。自作対象でない項目にだけ付く */
+.parts .pt{
+  margin-left:.7ch; padding:2px 7px; border:1px solid var(--line);
+  font-weight:400; font-size:11px; color:var(--muted); vertical-align:2px;
+}
+.parts .pd{ grid-column:2; font-size:14px; color:var(--muted); line-height:1.75; }
+
+/* ============ 章立てナビ ============ */
+/* 縦8000px超のドキュメントなので、ヒーローと本文の境目で章立てを1行見せる */
+.toc{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--bg-2); }
+.toc-inner{ max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,44px); display:flex; flex-wrap:wrap; }
+.toc a{
+  padding:13px clamp(14px,2vw,22px); border-right:1px solid var(--line);
+  font-weight:700; font-size:14px; color:var(--ink-2);
+  transition:color .15s ease, background .15s ease;
+}
+.toc a:first-child{ border-left:1px solid var(--line); }
+.toc a:hover{ color:var(--don); background:var(--bg); }
+
+/* ============ SECTIONS ============ */
+.flow{ max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,44px); }
+.section{ padding:var(--sec-pad) 0 0; }
+.section + .section{ border-top:1px solid var(--line); }
+.section:last-child{ padding-bottom:var(--sec-pad); }
+
+/* 節の見出しは分類名そのもの。読者はナビや流し読みで「感度変更」を探すので、標語より名前を大きくする。
+   朱の短い罫は「推奨」と並ぶ朱の用途で、意味を薄めないためここ以外の見出しには付けない */
+.section h2{
+  display:flex; align-items:center; gap:14px;
+  font-weight:900; font-size:clamp(26px,3vw,38px); line-height:1.3; letter-spacing:.02em;
+}
+.section h2::before{ content:""; width:28px; height:4px; flex:none; background:var(--don); }
+/* 節の結論。見出しより小さく本文より強い1行 */
+.section .lead{
+  margin-top:clamp(12px,1.4vw,16px);
+  font-weight:700; font-size:clamp(17px,1.6vw,21px); line-height:1.6; color:var(--ink);
+}
+.section .body{
+  margin-top:clamp(18px,2.2vw,26px); max-width:62ch;
+  color:var(--ink-2); font-size:clamp(15px,1.2vw,17px); line-height:1.95;
+}
+.section .body strong{ color:var(--ink); font-weight:700; }
+/* 小見出しは本文に埋もれないよう、上に朱の短い罫を置いて段を切る */
+.sub-h{
+  margin-top:clamp(40px,5vw,60px); padding-top:14px;
+  border-top:3px solid var(--don); display:table;
+  /* 本文が17pxあるので20pxでは段差が足りない。朱の罫と合わせて節の切れ目を作る */
+  font-weight:700; font-size:22px; letter-spacing:.01em;
+}
+.note{ margin-top:16px; max-width:70ch; font-size:14px; color:var(--muted); line-height:1.9; }
+
+/* ---- 表（比較・部品表） ---- */
+/* 幅の広い表はページ本体ではなく表だけを横スクロールさせる */
+.table-wrap{ margin-top:var(--gap-block); overflow-x:auto; border:1px solid var(--line); position:relative; }
+.grid{ width:100%; border-collapse:collapse; font-size:14px; background:var(--bg); }
+.grid th,.grid td{
+  padding:13px 16px; text-align:left; vertical-align:top;
+  border-bottom:1px solid var(--line-2); border-right:1px solid var(--line-2);
+  line-height:1.7;
+}
+.grid tr:last-child th,.grid tr:last-child td{ border-bottom:0; }
+.grid th{ font-weight:700; color:var(--ink); background:var(--bg-2); white-space:nowrap; }
+.grid td{ color:var(--ink-2); }
+.grid thead th{ font-size:13px; }
+.grid a{ border-bottom:1px solid var(--don); color:var(--ink); }
+.cmp td{ min-width:200px; }
+/* 6%だと隣の列との差が数値で3/255しかなく、推す列がひとかたまりに見えなかった */
+.cmp .pick{ background:color-mix(in srgb,var(--don) 9%,var(--bg)); color:var(--ink); }
+/* 朱文字は薄い朱の地に対して 4.09:1 で AA未達だった。地を薄くすると今度は見出し行の濃さが
+   他の列と揃わないので、文字はインクに戻し、朱は「推奨」札（塗り）だけが担う */
+.cmp thead th.pick{ background:color-mix(in srgb,var(--don) 12%,var(--bg-2)); }
+/* 朱の地だけでは「推す側」だと分からないので明示する。カードの「推奨モデル」バッジと対。
+   枠線＋朱文字だと薄い朱の地に対して 4.19:1 でAA未達なので、地を朱で塗って紙色を抜く（5.4:1） */
+.cmp thead th.pick .pick-tag{ margin-left:.8ch; padding:2px 7px; background:var(--don); color:var(--bg); font-size:11px; font-weight:700; }
+.grid.slim th,.grid.slim td{ padding:11px 14px; }
+.num{ font-family:var(--fmono); font-weight:700; color:var(--ink); }
+
+/* ---- パイプライン ---- */
+.pipeline{ margin-top:var(--gap-block); display:grid; grid-template-columns:repeat(5,1fr); gap:20px; list-style:none; }
+.stage-step{ position:relative; border:1px solid var(--line); background:var(--bg-2); padding:clamp(18px,2vw,24px) clamp(14px,1.6vw,18px); }
+.stage-step .sn{ font-family:var(--fmono); font-weight:700; font-size:13px; color:var(--muted); }
+/* 段の連結は矢印で示す。1pxのヘアラインでは流れとして読めなかった */
+.stage-step::after{
+  content:"→"; position:absolute; top:50%; right:-16px; transform:translateY(-50%);
+  font-size:13px; line-height:1; color:var(--muted);
+}
+.stage-step:last-child::after{ display:none; }
+/* 段の名前は見出しではなくラベル。h3 にすると見出しナビに「ピエゾ/ADC/…」が5件並んで文書構造が壊れる */
+.stage-step .sn-h{ display:block; margin-top:12px; font-weight:700; font-size:17px; }
+/* その段で何が何に変わるか。図を読まなくても1行で流れが追える */
+.stage-step .sv{ display:block; margin-top:9px; font-family:var(--fmono); font-weight:700; font-size:12.5px; color:var(--ink); }
+.stage-step p{ margin-top:7px; font-size:13px; color:var(--muted); line-height:1.75; }
+
+/* ---- キー割り当て ---- */
+/* 藍を使うのはここだけ。面=朱・縁=藍は実機のゾーン対応そのもの */
+.keymap{ margin-top:var(--gap-block); display:grid; grid-template-columns:repeat(4,minmax(0,180px)); gap:10px; }
+.km{ border:1px solid var(--line); border-top-width:4px; background:var(--bg-2); padding:16px 18px; }
+.km.don{ border-top-color:var(--don); }
+.km.ka{ border-top-color:var(--ka); }
+.km-pos{ display:block; font-size:13px; color:var(--muted); }
+/* 文字列そのものを縦に並べて transform で送る。
+   content のアニメーションは Chrome が再描画を取りこぼし、スクロールしないと進まないため使わない */
+.km b{ --kmh:36px; display:block; margin-top:6px; height:var(--kmh); overflow:hidden; font-size:0; }
+.km b i{
+  display:block; height:var(--kmh);
+  font-family:var(--fmono); font-style:normal; font-weight:700; font-size:var(--kmh); line-height:1;
+  animation:km-reel 4s infinite;
+}
+.km.don b i{ color:var(--don); }
+.km.ka b i{ color:var(--ka); }
+/* 0.875秒ホールド → 0.125秒で次の段へ、を4回。21.875% = 0.875s / 4s */
+@keyframes km-reel{
+  0%,21.875%{ transform:translateY(0) }
+  25%,46.875%{ transform:translateY(calc(var(--kmh) * -1)) }
+  50%,71.875%{ transform:translateY(calc(var(--kmh) * -2)) }
+  75%,96.875%{ transform:translateY(calc(var(--kmh) * -3)) }
+  100%{ transform:translateY(calc(var(--kmh) * -4)) }
+}
+
+/* ---- カード ---- */
+.cards{ margin-top:var(--gap-block); display:grid; grid-template-columns:1fr 1fr; align-items:stretch; gap:clamp(14px,1.6vw,20px); }
+.card{ border:1px solid var(--line); background:var(--bg-2); padding:clamp(22px,2.4vw,32px); display:flex; flex-direction:column; }
+.card.pick{ border-color:var(--don); border-top-width:4px; background:var(--panel); }
+.card .badge{ font-weight:700; font-size:13px; color:var(--muted); }
+.card.pick .badge{ color:var(--don); }
+.card h3{ margin-top:12px; font-weight:700; font-size:clamp(20px,2.2vw,26px); line-height:1.25; }
+.card-media{
+  margin-top:16px; aspect-ratio:4 / 3; max-height:280px; display:grid; place-items:center; overflow:hidden;
+  border:1px solid var(--line); background:var(--bg);
+}
+.card-img{ display:block; width:100%; height:100%; object-fit:contain; padding:14px; }
+.card-media-ph .ph-mark{ width:44%; max-width:96px; height:auto; color:var(--muted); opacity:.4; }
+.card .price{ margin-top:14px; font-family:var(--fmono); font-weight:700; font-size:clamp(16px,1.5vw,19px); color:var(--ink); }
+.card.pick .price{ color:var(--don); }
+.card .price .sub{ display:block; margin-top:6px; color:var(--muted); font-weight:400; font-size:.68em; }
+.card .desc{ margin-top:16px; color:var(--ink-2); font-size:14px; line-height:1.9; }
+.card .table-wrap{ margin-top:18px; }
+/* 性能値。「800円でこれが出る」がこの製品の主張そのものなので、本文より一段大きく出す */
+.spec-list{ margin-top:18px; display:grid; grid-template-columns:1fr auto; gap:11px 16px; align-items:baseline; font-size:14px; }
+.spec-list dt{ color:var(--muted); }
+.spec-list dd{ font-family:var(--fmono); font-weight:700; font-size:17px; text-align:right; }
+/* 推奨モデル＋部品表の一体化カード（接続器セクション）。写真｜本文｜部品表の横3カラムで縦長を回避 */
+.card-merge{ grid-column:1 / -1; }
+.card-merge-grid{ display:grid; grid-template-columns:minmax(240px,320px) minmax(0,1fr) minmax(0,1fr); align-items:start; gap:clamp(18px,3vw,30px); }
+/* ver1.3 の切り抜きはほぼ正方形。共通ルール(4:3・高さ上限280px)のままだと幅が縮むため、
+   このカードだけボックスを写真と同じ1:1にして上限を外す。containなので切り取りは起きない */
+.card-merge-grid .card-media{ margin-top:0; aspect-ratio:1 / 1; max-height:none; }
+.card-merge-body, .card-merge-parts{ min-width:0; }
+/* 3カラム目の見出しはカード名（RP2040 接続器）の下位なので、同じ大きさにしない。
+   26px のままだと210px幅の列で2行に割れて最後の1文字がぶら下がる */
+.card-merge-parts h3{ margin-top:0; font-size:19px; }
+
+/* ---- 太鼓基盤 ---- */
+.board-grid{
+  margin-top:var(--gap-block);
+  /* 図面側を広く取る。右の仕様表は行数が少なく、右端が余っていた */
+  display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  align-items:center; gap:clamp(18px,3vw,30px);
+}
+/* 図面は縦横比が固定の線画なので、枠を 4:3 に固定せず図面の比率のまま置く。地は紙色（型紙に見せる） */
+.board-media{
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  border:1px solid var(--line); background:var(--bg); padding:clamp(16px,2vw,24px);
+}
+.board-img{ display:block; width:100%; max-width:420px; height:auto; }
+.board-cap{ font-size:12px; color:var(--muted); line-height:1.6; text-align:center; }
+.board-panel .table-wrap{ margin-top:0; }
+
+/* ---- 図版（回路図など線画） ---- */
+/* 図版は白を透過にしてあるので、枠の地色がそのまま図の地になる */
+.schema{
+  margin-top:var(--gap-block);
+  border:1px solid var(--line); background:var(--bg-2);
+  padding:clamp(18px,2.4vw,30px);
+}
+.schema-scroll{ width:100%; }
+.schema img{ display:block; width:100%; max-width:780px; height:auto; margin:0 auto; }
+.schema figcaption{ margin-top:18px; font-size:12px; color:var(--muted); text-align:center; line-height:1.6; }
+
+.built{ margin-top:var(--gap-block); }
+/* 実物写真。地が砂目のサーモンで紙色に対して強いので、線で囲って「写真」として置く */
+.built img{ display:block; width:100%; max-width:520px; height:auto; border:1px solid var(--line); }
+.built figcaption{ margin-top:14px; max-width:520px; font-size:12px; color:var(--muted); line-height:1.6; }
+
+/* ---- 折りたたみ ---- */
+/* 既定は閉じる（読み飛ばす人の縦スクロール量を削る）。ただしその表が節の主役のときは open にする:
+   接続器カードの「部品と数量」と、感度変更節の「調整できるパラメータ」がそれ。閉じていると中身が無く見える */
+.fold{ margin-top:var(--gap-block); border-top:1px solid var(--line); }
+.fold>summary{
+  list-style:none; cursor:pointer; padding:10px 14px;
+  display:flex; align-items:center; gap:.6ch; font-weight:700; font-size:14px;
+  background:var(--bg-2); border:1px solid var(--line); border-top:0;
+}
+.fold>summary:hover{ background:color-mix(in srgb,var(--don) 5%,var(--bg-2)); }
+.fold>summary::-webkit-details-marker{ display:none; }
+.fold>summary::before{ content:"▽"; font-size:11px; color:var(--don); }
+.fold[open]>summary::before{ content:"△"; }
+.fold>summary:hover{ color:var(--don); }
+.fold .table-wrap{ margin-top:0; margin-bottom:16px; }
+
+/* ---- テキストリンク ---- */
+/* リンクは色ではなく朱の下線で示す（色数を増やさない） */
+.links-row{ margin-top:20px; display:flex; flex-wrap:wrap; gap:10px 22px; }
+.text-link{ display:inline-flex; border-bottom:2px solid var(--don); font-weight:700; font-size:14px; }
+/* 行で並べるリンクは制作ガイド・図面などの行き先そのもの。注記の文中リンクより一段大きくする */
+.links-row .text-link{ font-size:16px; }
+/* スクリーンリーダー専用。視覚的には非表示（テーブルcaption用） */
+.vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.text-link:hover{ background:color-mix(in srgb,var(--don) 8%,transparent); }
+.note .text-link{ margin-left:.4ch; }
+
+/* ============ FOOTER ============ */
+/* 内側の padding は .footer-inner 側に置く。.site-footer に付けると 1080px カラムが
+   その分だけ内へ寄って、本文（.flow）と左端が揃わない */
+.site-footer{ border-top:1px solid var(--line); background:var(--bg-2); padding:clamp(44px,6vw,72px) 0; }
+.footer-inner{ max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,44px); display:flex; flex-direction:column; gap:16px; }
+/* 縦8500pxを読み切った読者に、上へ戻らせずに次の行動を出す */
+.footer-close{ padding-bottom:clamp(28px,3.4vw,40px); border-bottom:1px solid var(--line); }
+.footer-close-lead{ font-weight:700; font-size:clamp(16px,1.8vw,20px); color:var(--ink); line-height:1.6; }
+.footer-close .hero-cta{ margin-top:18px; max-width:680px; }
+.footer-links{ display:flex; flex-wrap:wrap; gap:10px 20px; font-size:14px; }
+.footer-links a{ border-bottom:1px solid var(--line); transition:border-color .15s; }
+.footer-links a:hover{ border-color:var(--don); }
+.footer-brand{ margin-top:clamp(18px,2.6vw,26px); display:flex; align-items:center; gap:.6ch; font-weight:900; font-size:21px; }
+.footer-brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--don); display:inline-block; }
+.footer-license,.footer-credit{ font-size:13px; color:var(--muted); line-height:1.7; }
+.footer-license a,.footer-credit a{ color:var(--ink-2); border-bottom:1px solid var(--line); }
+.footer-license a:hover,.footer-credit a:hover{ border-color:var(--don); }
+
+/* ============ RESPONSIVE ============ */
+/* パイプラインを縦積みにする境目。5列固定なので、1箱の中身は (幅-168)/5-28 px しか無い。
+   1行11文字を割るのが cw 1023px あたりで、実測 885px では 8.7文字＝説明が3行の断片になっていた。
+   横並びの図に見せる価値より、読めることを取る */
+@media(max-width:1060px){
+  .pipeline{ grid-template-columns:1fr; }
+  .stage-step::after{ content:"↓"; top:auto; right:auto; left:22px; bottom:-17px; transform:none; }
+}
+/* 881〜1000px（小型ノート・分割ウィンドウ）。写真列が 320px 固定なので、
+   3カラムのままだと本文と部品表が 188px ずつしか取れず、10文字ごとに折り返して読めない。
+   写真｜本文 の2列にして、部品表は下に全幅で敷く */
+@media(min-width:881px) and (max-width:1060px){
+  .card-merge-grid{
+    grid-template-columns:minmax(0,260px) minmax(0,1fr);
+    grid-template-areas:"media body" "parts parts";
+  }
+  .card-merge-grid .card-media{ grid-area:media; }
+  .card-merge-body{ grid-area:body; }
+  .card-merge-parts{ grid-area:parts; margin-top:clamp(14px,2vw,20px); }
+  /* 縦積みにすると1箱が全幅になって「打面・縁の揺れを拾う」の右に800px空く。
+     この幅では1段を横1行（番号｜名前｜変換｜説明）に組んで、幅を使い切る */
+  .stage-step{
+    display:grid; align-items:baseline;
+    grid-template-columns:auto minmax(90px,max-content) minmax(96px,max-content) minmax(0,1fr);
+    column-gap:clamp(14px,2.4vw,30px); padding:15px clamp(14px,1.6vw,18px);
+  }
+  .stage-step .sn-h, .stage-step .sv, .stage-step p{ margin-top:0; }
+  .stage-step .sn-h{ font-size:16px; }
+}
+@media(max-width:880px){
+  .site{ align-items:flex-start; }
+  .hero{ grid-template-columns:1fr; }
+  /* モバイルはテキスト（h1/lead/CTA）を先に見せ、図は後ろへ。CTAをファーストビューに残すため */
+  .hero-parts{ order:1; }
+  /* 縦積みでは横幅が余らないので 1:1。太鼓は丸いので 4:3 だと左右が無駄になり、
+     同じ幅で高さだけ損する（335×251 → 335×335） */
+  .hero-media{ order:2; aspect-ratio:1/1; }
+  /* 縦積みではヒーロー左下がテキストの下になるので、案内は出さない（タッチでは触れば回る） */
+  .hero{ min-height:0; }
+  .stage-hint{ display:none !important; }
+  .cards{ grid-template-columns:1fr; }
+  .card-merge-grid{ grid-template-columns:1fr; }
+  /* 単カラムでは全幅×3:4で写真が縦に伸びすぎるため、幅を絞って中央寄せ */
+  .card-merge-grid .card-media{ width:min(320px,100%); margin-inline:auto; }
+  .board-grid{ grid-template-columns:1fr; }
+  .parts{ columns:1; }
+}
+@media(max-width:560px){
+  /* flex の伸縮だとリンク幅がバラバラの2段になるので、3列×2段のグリッドで揃える（リンクは6本） */
+  .site-nav{ width:100%; display:grid; grid-template-columns:repeat(3,1fr); }
+  .site-nav a{ padding:8px 10px; border-left:1px solid var(--line); }
+  .site-nav a:nth-child(3n){ border-right:1px solid var(--line); }
+  .site-nav a:nth-child(-n+3){ border-bottom:1px solid var(--line); }
+  /* モバイルはナビの補足（役割）を省いて1行分の高さに。ヘッダーの圧迫を抑える */
+  .site-nav .ext{ display:none; }
+  .spec-v{ font-size:17px; }
+  .spec-s{ font-size:11px; }
+  .toc a{ padding:11px 13px; font-size:13px; }
+  /* ラベルが2行に折れると補足が横に取り残されて崩れる。狭い画面では補足を省く
+     （.site-nav .ext / .cta-sub と同じ扱い） */
+  .hero-proof .ext{ display:none; }
+  .keymap{ grid-template-columns:repeat(4,1fr); }
+  .km{ padding:12px 10px; }
+  .km b{ --kmh:24px; }
+  /* CTAは3つ横1行に。サブは省いてラベルのみ */
+  .hero-cta{ width:100%; }
+  .cta{ align-items:center; text-align:center; padding:10px 6px; font-size:14px; }
+  .cta .cta-sub{ display:none; }
+  /* 回路図は縮めると素子名・定数が読めなくなる（298px幅では元の27%）。
+     表と同じく、図だけを横スクロールさせて可読サイズを保つ */
+  .schema-scroll{ overflow-x:auto; position:relative; }
+  .schema-scroll img{ min-width:520px; max-width:none; }
+  /* 溢れる表に「右に続く」ヒント。横スクロールできることを伝える */
+  .table-wrap::after{
+    content:"→"; position:absolute; top:8px; right:8px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--bg); border:1px solid var(--line); color:var(--muted);
+    font-size:11px; display:grid; place-items:center;
+  }
+}
+/* 320px 級（iPhone SE 初代など）だけ縦積みにする。
+   3列のとき1列に使えるのは (幅-40)/3-12 で、nowrap の「すべて公開」は17pxで85px 要る。
+   計算上 331px を下回ると溢れ、実測でも 305px で隣の「PC」にめり込んでいた。
+   360px 端末は 3列で収まるので、そちらは横並びのまま（数値パネルに見せたい） */
+@media(max-width:359px){
+  .specs{ grid-template-columns:1fr; }
+  .spec{ display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:14px; align-items:baseline; padding:11px 0; }
+  .spec + .spec{ padding-left:0; border-left:0; border-top:1px solid var(--line-2); }
+  .spec dt{ grid-column:1; grid-row:1; }
+  .spec-v{ grid-column:2; grid-row:1; margin-top:0; font-size:20px; }
+  .spec-s{ grid-column:2; grid-row:2; margin-top:2px; }
+}
+@media(prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  /* 送りを止め、先頭の D / F / J / K で固定する */
+  .km b i{ animation:none; }
+  /* 入場のフェード（3Dの出現・フォールバック画像の消え際）とホバーの動きを止める。
+     3Dのドラッグ・分解スライダーはユーザーが起こす操作なので対象外（止めると機能が消える） */
+  *, *::before, *::after{ transition-duration:.01ms !important; }
+}

@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HIDtaiko — おうち太鼓を、ゼロから作る</title>
+<meta name="description" content="おうち太鼓の自作プロジェクト HIDtaiko。接続器と太鼓基盤の回路図・実寸図面・3Dデータ・ファームウェアをすべて公開しています。RP2040接続器は最安800円、USBキーボードとしてPCに認識されるのでドライバもソフトも不要です。">
+<!-- OGP / Twitterカード。og:image は絶対URLでないと効かない。
+     公開先が kasasiki3.github.io の root 以外になったら、この2つの絶対URLを直すこと（README の公開手順と対）。
+     画像は _ogp.html で生成する（サイトと同じ書体・同じ色で canvas に描いて書き出す） -->
+<meta property="og:site_name" content="HIDtaiko">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kasasiki3.github.io/">
+<meta property="og:title" content="HIDtaiko — おうち太鼓を、ゼロから作る">
+<meta property="og:description" content="接続器は最安800円。回路図から実寸図面・ファームウェアまで、設計はすべて公開しています。">
+<meta property="og:image" content="https://kasasiki3.github.io/images/ogp.png?v=20260817">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="HIDtaiko — おうち太鼓を、ゼロから作る。上板の実寸図面と、価格 ¥800〜・設計すべて公開・対応PC">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@kasashiki">
+<link rel="canonical" href="https://kasasiki3.github.io/">
+<!-- モバイルのブラウザ枠をページ地と同色にする。白い帯が上に出て紙面が切れて見えるのを防ぐ -->
+<meta name="theme-color" content="#fbfaf7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23c0392b'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%23fbfaf7'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- three.js は jsdelivr から約600KB。importmap 解決を待たずに接続とモジュール取得を先に始める -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261003b">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module" src="js/exploded-view.js?v=20260817-04"></script>
+</head>
+<body>
+
+<!-- ヘッダーのリンク6本を毎回タブで抜けなくて済むようにする。既定では画面外、フォーカスで出てくる -->
+<a class="skip-link" href="#top">本文へ移動</a>
+
+<header class="site">
+  <div class="brand-block">
+    <div class="brand"><span class="dot"></span>HIDtaiko</div>
+    <p class="tagline">低価格で高性能なおうち太鼓プロジェクト</p>
+  </div>
+  <nav class="site-nav" aria-label="関連リンク">
+    <a href="https://github.com/kasasiki3/HIDtaiko" target="_blank" rel="noopener">GitHub<span class="ext">設計データ</span></a>
+    <a href="https://x.com/kasashiki" target="_blank" rel="noopener">X<span class="ext">質問・新情報</span></a>
+    <a href="https://www.youtube.com/channel/UCN6--q2vATunlbG3SnSLd7g" target="_blank" rel="noopener">YouTube<span class="ext">プレイ動画</span></a>
+    <a href="https://kasasiki3.github.io/HIDtaiko/v12.html" target="_blank" rel="noopener">感度変更アプリ<span class="ext">Webアプリ</span></a>
+    <a class="shop" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">メルカリ<span class="ext">完成品・パーツ</span></a>
+    <a href="https://zenn.dev/kasashiki/articles/7bf286b8120f90" target="_blank" rel="noopener">Zenn<span class="ext">制作記事</span></a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ HERO: 3D分解ビュー＋太鼓の構成 ============ -->
+  <!-- 3D分解ビュー（js/exploded-view.js）。JS/GLB失敗時は組み立て図（img）がフォールバックとして残る -->
+  <section class="hero" id="top" tabindex="-1">
+    <!-- 3Dキャンバスはヒーロー全体を覆う背景レイヤー。矩形に閉じ込めるとズーム時に太鼓がその縁で切れるため -->
+    <div id="stage"></div>
+    <div class="hero-parts">
+      <h1>HIDtaiko<span class="hero-sub">おうち太鼓自作プロジェクト。</span></h1>
+      <!-- 「面以外は全部作れる」はここに書かない。次の構成セクションの見出しがそれで、
+           2画面続けて同じ文が出ると読者には言い直しに見える。ここは仕組みだけを言う -->
+      <dl class="specs">
+        <div class="spec"><dt>価格</dt><dd class="spec-v"><span class="num">¥800</span><span class="spec-u">〜</span></dd><dd class="spec-s">接続器の材料費（最安）</dd></div>
+        <div class="spec"><dt>設計</dt><dd class="spec-v">すべて公開</dd><dd class="spec-s">Apache-2.0 / GitHub</dd></div>
+        <div class="spec"><dt>対応</dt><dd class="spec-v">PC / Switch</dd><dd class="spec-s">USB接続・ドライバ不要</dd></div>
+      </dl>
+      <nav class="hero-cta" aria-label="主な導線">
+        <a class="cta cta-don" href="#connector">作る<span class="cta-sub">部品表と手順へ</span></a>
+        <a class="cta cta-shop" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">買う<span class="cta-sub">メルカリで販売中</span></a>
+        <a class="cta" href="https://kasasiki3.github.io/HIDtaiko/v12.html" target="_blank" rel="noopener">感度を変える<span class="cta-sub">ブラウザから設定</span></a>
+      </nav>
+      <!-- 動いているところがページのどこにも無く、比較表の中に「視聴」というリンクがあるだけだった。
+           SNSから来た人が最初に確かめたいのはここなので、ファーストビューに1行だけ置く -->
+      <p class="hero-proof"><a href="https://www.youtube.com/watch?v=wMSDLN9h2Co" target="_blank" rel="noopener"><span class="lbl">叩いているところを見る</span><span class="ext">YouTube · RP2040接続器のプレイ動画</span></a></p>
+    </div>
+    <figure class="hero-media" id="stage-wrap">
+      <img id="stage-fallback" src="images/cg-assembly-Photoroom.png?v=20260817" alt="HIDtaiko 太鼓基盤の組み立て図" width="779" height="811">
+      <div class="explode-ctrl" id="explode-ctrl">
+        <span class="label">分解</span>
+        <input type="range" id="explode" min="0" max="100" value="0" aria-label="分解量">
+        <span class="val" id="explode-val">0%</span>
+      </div>
+    </figure>
+    <!-- 3Dが操作できることは見ただけでは伝わらないので明示する。JS成功時のみ exploded-view.js が表示する。
+         モデルは基準枠からはみ出して描かれるので、枠内ではなくヒーロー左下（確実に空く場所）に置く -->
+    <p class="stage-hint" id="stage-hint">実CADデータ · ドラッグで回す / スライダーで分解する</p>
+  </section>
+
+  <!-- 全幅のページ内ナビ。8000px超の縦長ドキュメントなので、章立てを1行で見せる -->
+  <nav class="toc" aria-label="ページ内ナビ">
+    <div class="toc-inner">
+      <a href="#parts">構成</a>
+      <a href="#connector">接続器</a>
+      <a href="#how">仕組み</a>
+      <a href="#tuning">感度変更</a>
+      <a href="#sensors">センサー</a>
+      <a href="#drumhead">太鼓基盤</a>
+    </div>
+  </nav>
+
+  <div class="flow">
+
+    <!-- 00 構成 -->
+    <section class="section" id="parts">
+      <h2>構成</h2>
+      <p class="lead">面以外を全部作る。</p>
+      <p class="body">おうち太鼓は7つの部品でできています。このうち<strong>面（打面）</strong>は用意しなければなりません。</p>
+      <ol class="parts">
+        <li><span class="pn">01</span><b>面<span class="pt">既製品</span></b><span class="pd">AC面 / 太鼓フォース面を流用（AC基盤との互換性なし）</span></li>
+        <li><span class="pn">02</span><b>上板・下板・足</b><span class="pd">ラワンベニヤ12mm。実寸図面をA4で印刷して切り出す</span></li>
+        <li><span class="pn">03</span><b>防振ゴム・ネジ</b><span class="pd">VD2-2015M6 ×14／M6ネジ・ナット・ワッシャー 各14</span></li>
+        <li><span class="pn">04</span><b>スペーサー</b><span class="pd">面と縁の高さ調整。0.2 / 0.4 / 0.6mm の3Dプリント品</span></li>
+        <li><span class="pn">05</span><b>センサー ×4</b><span class="pd">左縁・左面・右面・右縁。AT3040 または GSS-4SA</span></li>
+        <li><span class="pn">06</span><b>センサー固定パーツ</b><span class="pd">AT3040用の3Dプリント品。M3L8ネジで固定</span></li>
+        <li><span class="pn">07</span><b>接続器</b><span class="pd">4本のセンサーを受けてPCへキー入力を送る。最安800円</span></li>
+      </ol>
+      <p class="note">02〜04 が太鼓基盤（木工）、05〜07 が信号まわり（電子工作）です。</p>
+
+      <h3 class="sub-h">¥800 は、接続器だけの値段。</h3>
+      <div class="table-wrap">
+        <table class="grid slim">
+          <caption class="vh">部品ごとの費用</caption>
+          <thead><tr><th scope="col">部品</th><th scope="col">費用</th><th scope="col">内訳・条件</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">接続器</th><td><span class="num">最安 800円</span></td><td>RP2040版の材料費。はんだごて等の道具と送料は別</td></tr>
+            <tr><th scope="row">センサー4本</th><td><span class="num">1,733円</span></td><td>AT3040 5個 343円 ＋ ケーブル1セット 390円 ＋ 熱収縮チューブ 300円 ＋ 固定用M2ネジ8本 700円</td></tr>
+            <tr><th scope="row">面</th><td><span class="num">目安 〜10,000円</span></td><td>AC面 / 太鼓フォース面。購入先で変動</td></tr>
+            <tr><th scope="row">板材・金具</th><td><span class="num">目安 〜8,000円</span></td><td>ラワンベニヤ12mm、防振ゴム14、M6ネジ・ナット・ワッシャー 各14。購入先で変動</td></tr>
+            <tr><th scope="row">3Dプリント品</th><td><span class="num">目安 300円程度</span></td><td>スペーサー、AT3040固定パーツ。STLは公開済み。購入先で変動</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">※金額は購入先や相場によって異なります。</p>
+      <p class="note">選択肢は2つ。RP2040 のほうが最新・最安・最高性能。1.3接続器 を選ぶ理由は、自分でコードを書き換えたい場合だけです。</p>
+    </section>
+
+    <!-- 01 接続器 -->
+    <section class="section" id="connector">
+      <h2>接続器</h2>
+      <p class="lead">注目はRP2040接続器。</p>
+      <p class="body">接続器は、センサー4本の信号をPCへの入力に変換します。PCから見ると、これは<strong>ただのUSBキーボード</strong>。叩けば D・F・J・K が打たれます。キーボードで遊べるゲームならそのまま使えます。</p>
+
+      <div class="table-wrap">
+        <table class="grid cmp">
+          <caption class="vh">RP2040接続器と1.3接続器の比較</caption>
+          <thead>
+            <tr><th scope="col">項目</th><th scope="col" class="pick">RP2040接続器<span class="pick-tag">推奨</span></th><th scope="col">1.3接続器</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">制作費用</th><td class="pick"><span class="num">最安 800円</span><br><small class="cell-note">材料費のみ。道具・送料別</small></td><td><span class="num">約1,500円</span></td></tr>
+            <tr><th scope="row">制作難易度</th><td class="pick">低（簡単なはんだ付けのみ）</td><td>中〜高（Arduinoの知識が必要）</td></tr>
+            <tr><th scope="row">対応デバイス</th><td class="pick">PC / Switch</td><td>PC</td></tr>
+            <tr><th scope="row">ファームウェア</th><td class="pick">Pico SDK</td><td>Arduino IDE</td></tr>
+            <tr><th scope="row">回路</th><td class="pick">ショットキーバリアダイオード クランプ</td><td>1MΩ抵抗</td></tr>
+            <tr><th scope="row">感度変更</th><td class="pick">感度変更サイト</td><td><span class="num">非対応</span></td></tr>
+            <tr><th scope="row">改造のしやすさ</th><td class="pick">難しい</td><td>簡単</td></tr>
+            <tr><th scope="row">プレイ動画</th>
+              <td class="pick"><a class="text-link" href="https://www.youtube.com/watch?v=wMSDLN9h2Co" target="_blank" rel="noopener" aria-label="RP2040接続器のプレイ動画（YouTube）">YouTube</a></td>
+              <td><a class="text-link" href="https://www.youtube.com/watch?v=Z8ZBOPpMMD8" target="_blank" rel="noopener" aria-label="1.3接続器のプレイ動画（YouTube）">YouTube</a></td>
+            </tr>
+            <tr><th scope="row">制作ガイド</th>
+              <td class="pick"><a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/blob/master/HIDtaiko_connector_rp2040/rp2040readme.md" target="_blank" rel="noopener" aria-label="RP2040接続器の制作ガイド（GitHub）">GitHub</a></td>
+              <td><a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/HIDtaiko_connector_ver1.3" target="_blank" rel="noopener" aria-label="1.3接続器の制作ガイド（GitHub）">GitHub</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cards">
+        <div class="card pick card-merge">
+          <div class="card-merge-grid">
+            <div class="card-media"><!-- メルカリ出品用の切り抜き（mercari-lister/thumb/asset_cut.png）を白合成→rembg(birefnet)で縁の白もやを除去し800pxに（_cutout/rembg_cut/） -->
+              <img class="card-img" src="images/rp2040-connector-v13.webp?v=20261003b" alt="RP2040接続器 ver1.3" width="800" height="760" loading="lazy" decoding="async"></div>
+            <div class="card-merge-body">
+              <div class="card-head"><span class="badge">推奨モデル</span></div>
+              <h3>RP2040 接続器 ver1.3</h3>
+              <div class="price">最安 800円<span class="sub">Pico SDK</span></div>
+              <p class="note">材料費のみ。道具と送料は含みません。</p>
+              <dl class="spec-list">
+                <dt>ロール連打（1振り）</dt><dd>約13回</dd>
+                <dt>旧ダブル連打</dt><dd>約1200回</dd>
+                <dt>旧ダブル連打（ver1.0）</dt><dd>約1000回</dd>
+              </dl>
+              <p class="note">※一部のシミュレーターでは入力制限を入れないとキー入力が認識されず、この性能が出ません。</p>
+              <p class="links-row">
+                <a class="text-link" href="https://zenn.dev/kasashiki/articles/28d31814b8bf86" target="_blank" rel="noopener">制作ガイド（Zenn）</a>
+                <a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/blob/master/HIDtaiko_connector_rp2040/rp2040readme.md" target="_blank" rel="noopener">組み立て手順・部品表</a>
+              </p>
+            </div>
+            <div class="card-merge-parts">
+              <h3>構成部品（ver1.3）</h3>
+              <div class="table-wrap">
+                <table class="grid slim">
+                  <caption class="vh">RP2040接続器の構成部品</caption>
+                  <thead><tr><th scope="col">部品</th><th scope="col">数量</th></tr></thead>
+                  <tbody>
+                    <tr><td>RP2040 Zero（ADCピン4本）</td><td>1</td></tr>
+                    <tr><td>1MΩ抵抗（0805）</td><td>4</td></tr>
+                    <tr><td>1KΩ抵抗（0805）</td><td>4</td></tr>
+                    <tr><td>ショットキーバリアダイオード（B0540W）</td><td>8</td></tr>
+                    <tr><td>スライドスイッチ（SS12D00）</td><td>1</td></tr>
+                    <tr><td>4×2 ピンヘッダ</td><td>1</td></tr>
+                    <tr><td>基板（ver1.3）</td><td>1</td></tr>
+                    <tr><td>M3×5mm ネジ</td><td>4</td></tr>
+                    <tr><td>3Dプリントケース</td><td>1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="note">必要な道具ははんだごてとニッパー。はんだ付けの知識と、簡単な回路図を読む力が必要です。完成品は<a class="text-link" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">メルカリ</a>でも販売しています。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 回路図は本体リポジトリの images/ver1.1_circuit.png（KiCadの書き出し）。
+           エディタのグリッド点を落とし、KiCad既定色をサイトのパレット（線=--ink / 部品=--don / ラベル=--ka）に置換してある -->
+      <h3 class="sub-h">入力を守るクランプ回路</h3>
+      <p class="body">2本のショットキーバリアダイオード（D9・D10）が性能と安定感を上げています。</p>
+      <figure class="schema">
+        <div class="schema-scroll"><img src="images/circuit-rp2040-v11.webp?v=20260817" alt="RP2040接続器 ver1.1 の回路図。センサー入力に1MΩを並列に入れ、1KΩを直列に挟んだADC入力を、ショットキーバリアダイオード D9（+5V側）と D10（GND側）でクランプしている" width="1100" height="583" loading="lazy" decoding="async"></div>
+        <figcaption>接続器 ver1.1、センサー1本ぶんの回路。同じものが4本ぶん並びます（ダイオード計8本）</figcaption>
+      </figure>
+
+    </section>
+
+    <!-- 02 仕組み -->
+    <section class="section" id="how">
+      <h2>仕組み</h2>
+      <p class="lead">振動の大きさではなく、振動の変化速度を見ている。</p>
+      <p class="body">ピエゾが振動すると電流が発生します。マイコンは直前の電圧との<strong>差分（デルタ）</strong>を取り、設定した閾値（感度）を超えた瞬間にキーを送ります。急な立ち上がりだけを拾うので、隣の打点の余韻には反応しにくい。そのうえで誤検出を防ぐタイマー（Delay）を<strong>4種類</strong>持ち、入力後の一定時間は同センサーや隣接センサーからの入力を無視します。</p>
+
+      <ol class="pipeline">
+        <li class="stage-step"><span class="sn">01</span><b class="sn-h">ピエゾ</b><span class="sv">振動 → 電圧</span><p>打面・縁の揺れを拾う</p></li>
+        <li class="stage-step"><span class="sn">02</span><b class="sn-h">ADC</b><span class="sv">電圧 → 数値</span><p>マイコンが読み取る</p></li>
+        <li class="stage-step"><span class="sn">03</span><b class="sn-h">差分検出</b><span class="sv">数値 → Δ</span><p>直前サンプルとの差を取る</p></li>
+        <li class="stage-step"><span class="sn">04</span><b class="sn-h">閾値判定</b><span class="sv">Δ &gt; 感度</span><p>超えたら入力。Delayで二重反応を抑える</p></li>
+        <li class="stage-step"><span class="sn">05</span><b class="sn-h">キー入力</b><span class="sv">D F J K</span><p>HIDとしてPCへ送信</p></li>
+      </ol>
+
+      <h3 class="sub-h">キー割り当ては自由</h3>
+      <p class="body">4つの打点に、好きなキーを割り当てられます。初期値は太鼓系で定番の <span class="num">D / F / J / K</span>。使うゲームに合わせて変えてください。</p>
+      <div class="keymap" aria-label="キー割り当ての設定例">
+        <div class="km ka"><span class="km-pos">左縁</span><b aria-hidden="true"><i>D</i><i>F</i><i>S</i><i>X</i><i>D</i></b><span class="vh">初期値 D</span></div>
+        <div class="km don"><span class="km-pos">左面</span><b aria-hidden="true"><i>F</i><i>G</i><i>D</i><i>C</i><i>F</i></b><span class="vh">初期値 F</span></div>
+        <div class="km don"><span class="km-pos">右面</span><b aria-hidden="true"><i>J</i><i>H</i><i>K</i><i>N</i><i>J</i></b><span class="vh">初期値 J</span></div>
+        <div class="km ka"><span class="km-pos">右縁</span><b aria-hidden="true"><i>K</i><i>J</i><i>L</i><i>M</i><i>K</i></b><span class="vh">初期値 K</span></div>
+      </div>
+      <p class="note">割り当ては接続器側に保存されるので、別のPCに挿しても同じ設定で使えます。</p>
+    </section>
+
+    <!-- 03 感度変更（接続器から独立させた。仕組みで閾値とDelayを説明した直後に置くと話が繋がる） -->
+    <section class="section" id="tuning">
+      <h2>感度変更</h2>
+      <p class="lead">感度はブラウザから変える。</p>
+      <p class="body">閾値（感度）と4種類のDelay。この数値を、<strong>接続器をPCに繋いだままブラウザから書き換えられます</strong>。アプリのインストールも開発環境も要りません。叩きながら数値を詰めて、決まったら接続器のフラッシュに保存します。</p>
+      <div class="table-wrap">
+        <table class="grid">
+          <caption class="vh">感度変更サイトで調整できるパラメータ</caption>
+          <thead><tr><th scope="col">パラメータ</th><th scope="col">役割</th></tr></thead>
+          <tbody>
+            <tr><td>感度（Sensitivity）</td><td>デルタがこの値を超えると入力。値が大きいほど感度が低い</td></tr>
+            <tr><td>Adelay</td><td>同センサーの再入力クールダウン</td></tr>
+            <tr><td>Bdelay</td><td>面（ドン）共有クールダウン</td></tr>
+            <tr><td>Cdelay</td><td>縁（カッ）共有クールダウン</td></tr>
+            <tr><td>Ddelay</td><td>面打後に縁を、縁打後に面を無視する時間</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">※Chrome / Edge のみ対応。対応ファームウェアは RP2040接続器のみです。</p>
+      <nav class="hero-cta tuning-cta" aria-label="感度変更サイト">
+        <a class="cta cta-don" href="https://kasasiki3.github.io/HIDtaiko/v12.html" target="_blank" rel="noopener">感度変更サイトを開く<span class="cta-sub">インストール不要・Chrome / Edge</span></a>
+      </nav>
+    </section>
+
+    <!-- 04 センサー -->
+    <section class="section" id="sensors">
+      <h2>センサー</h2>
+      <p class="lead">まずは AT3040 から。</p>
+      <p class="body">センサーはピエゾ素子（圧電素子）です。振動の大きさに応じて電圧を出す部品で、<strong>左縁・左面・右面・右縁の4箇所</strong>に仕込みます。おすすめのピエゾ素子（センサー）は2種類。どちらもしっかり固定すれば弱い力で反応します。性能は GSS-4SA が上で感度設定に余裕が生まれますが、<strong>価格差がかなり大きい</strong>。最初は AT3040 で十分です。</p>
+
+      <div class="cards">
+        <div class="card pick">
+          <div class="card-head"><span class="badge">まずはこれ</span></div>
+          <!-- 元の DSCF2250-Photoroom.png は 2400×1600 / 1.6MB。表示枠は300px程度なので 1000px の WebP に落としてある（48KB）。
+               可視部分の平均輝度が47(0-255)と暗かったため1.35倍に補正 -->
+          <div class="card-media"><img class="card-img" src="images/at3040.webp?v=20260820" alt="AT3040 ピエゾセンサー" width="1000" height="667" loading="lazy" decoding="async"></div>
+          <h3>AT3040</h3>
+          <div class="price">5個 343円<span class="sub">1個あたり約69円</span></div>
+          <p class="desc">安価で入手しやすいピエゾセンサー。3Dプリントの固定パーツ（M3L8ネジ）を使うと、より確実に固定できます。</p>
+          <p class="links-row">
+            <a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/drumhead/AT3040sensor_look" target="_blank" rel="noopener">固定パーツ STL（GitHub）</a>
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="badge">性能で選ぶ</span></div>
+          <div class="card-media card-media-ph">
+            <svg class="ph-mark" viewBox="0 0 64 64" aria-hidden="true">
+              <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="32" cy="32" r="10" fill="currentColor"/>
+              <path d="M32 10v-4M32 58v-4M10 32h-4M58 32h-4" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h3>GSS-4SA</h3>
+          <!-- 価格欄に「AC用センサー」と書いていたが、直下の説明文の「AC筐体で使われているセンサーです」と同義だった。
+               ここは価格の枠なので、持っている価格情報（比較）と、数字を出さない理由を書く -->
+          <div class="price">AT3040 より高価<span class="sub">価格は未確認のため載せていません</span></div>
+          <!-- 「AT3040 より性能が良く、感度設定に余裕が生まれる」は節の本文で言っている。ここでは繰り返さない -->
+          <p class="desc">AC筐体で使われているセンサーです。組み立て手順は AT3040 と同じなので、そのまま置き換えられます。</p>
+        </div>
+      </div>
+
+      <!-- サイトに載っている太鼓はすべてCGで、実物の手触りが1枚もなかった。
+           本体リポジトリ drumhead/sensor.md の手順9「この作業を4本分行い、完成」の写真がそのまま使える。
+           元画像は 4624×3472。背景の砂目テクスチャが容量を食う（無加工だと168KB）ので、
+           1040px に落としたあとメディアン3で粒だけ潰して71KBにしてある -->
+      <figure class="built">
+        <img src="images/sensors-built.webp?v=20260817" alt="ケーブルをはんだ付けし、熱収縮チューブで保護した AT3040 センサー4本。ケーブルは束ねてまとめられている" width="1040" height="824" loading="lazy" decoding="async">
+        <figcaption>4本そろえたところ。ケーブルの長さは自由に決められます（写真は継ぎ足して長くしたもの）</figcaption>
+      </figure>
+      <p class="note">センサーはケーブルをはんだ付けして4本作ります。赤いケーブルが＋。熱収縮チューブ（2.5mm）は10mmに切って使います。費用は <a class="text-link" href="#parts">構成</a> の内訳にまとめてあります。</p>
+      <p class="links-row">
+        <a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/blob/master/drumhead/sensor.md" target="_blank" rel="noopener">センサー組み立てガイド（GitHub）</a>
+      </p>
+    </section>
+
+    <!-- 05 太鼓基盤 -->
+    <section class="section" id="drumhead">
+      <h2>太鼓基盤</h2>
+      <p class="lead">ベニヤ板を切って、2〜3時間で組む。</p>
+      <p class="body">太鼓基盤は、<strong>面（打面）を載せてセンサーを仕込む土台</strong>です。12mm のラワンベニヤで作ります。</p>
+      <p class="body">上板と下板のあいだに<strong>防振ゴムを14箇所</strong>入れて面を浮かせ、隣の打点へ振動が伝わるのを抑えています。</p>
+      <p class="body">図面は A4用紙4枚分の実寸PDFです。印刷して貼り合わせれば、そのまま型紙になります。板はホームセンターのカットサービスに任せてもかまいません。</p>
+
+      <div class="board-grid">
+        <!-- 直前の本文が「実寸図面を印刷すれば型紙になる」なので、その図面そのものを見せる。
+             元は drumhead/images/front.png（白地の線画）。白の矩形が紙面に浮かないよう、白を透過・線を --ink に置換済み -->
+        <figure class="board-media">
+          <img class="board-img" src="images/drawing-front.webp?v=20260817" alt="上板の実寸図面。外径424mm、内径356mm、Ø7とØ15の穴位置が寸法入りで描かれている" width="900" height="792" loading="lazy" decoding="async">
+          <figcaption class="board-cap">上板の実寸図面（外径 424mm）。下板・足も同じ精度で公開しています</figcaption>
+        </figure>
+        <div class="board-panel">
+          <div class="table-wrap">
+            <table class="grid slim">
+              <caption class="vh">太鼓基盤の仕様</caption>
+              <tbody>
+                <tr><th scope="row">対応面</th><td>AC面・太鼓フォース面</td></tr>
+                <tr><th scope="row">AC基盤との互換性</th><td>無</td></tr>
+                <tr><th scope="row">鉄板・スポンジ・樽</th><td>使用できません</td></tr>
+                <tr><th scope="row">制作所要時間</th><td>約2〜3時間</td></tr>
+                <tr><th scope="row">板材</th><td>ラワンベニヤ 12mm</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="links-row">
+            <a class="text-link" href="https://a360.co/4iZLSSL" target="_blank" rel="noopener">3Dデータを見る</a>
+            <a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/drumhead/fullsizeprint" target="_blank" rel="noopener">実寸図面（PDF）</a>
+            <a class="text-link" href="https://www.youtube.com/watch?v=5O0MgKzX0PY" target="_blank" rel="noopener">組み立て動画</a>
+          </p>
+        </div>
+      </div>
+
+      <h3 class="sub-h">必要な部品</h3>
+      <div class="table-wrap">
+        <table class="grid">
+          <caption class="vh">太鼓基盤に必要な部品</caption>
+          <thead><tr><th scope="col">部品</th><th scope="col">数量</th><th scope="col">備考</th></tr></thead>
+          <tbody>
+            <tr><td>防振ゴム</td><td>14</td><td>VD2-2015M6</td></tr>
+            <tr><td>M6ネジ</td><td>14</td><td>M6 L16</td></tr>
+            <tr><td>M6ナット</td><td>14</td><td>ネジピッチに注意</td></tr>
+            <tr><td>M6ワッシャー</td><td>14</td><td>—</td></tr>
+            <tr><td>ラワンベニヤ</td><td>—</td><td>12mm。ホームセンターなど</td></tr>
+            <tr><td>スペーサー</td><td>—</td><td>0.2 / 0.4 / 0.6mm。PLAで3Dプリント、ゴムネジに挟む</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">ラワンベニヤ以外はモノタロウでの購入がおすすめです。</p>
+    </section>
+
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <!-- 縦8500pxを読み切った読者に、上へ戻らせずに次の行動を出す -->
+    <div class="footer-close">
+      <p class="footer-close-lead">必要なものは、このページと GitHub に全部あります。</p>
+      <nav class="hero-cta" aria-label="次にすること">
+        <a class="cta cta-don" href="https://github.com/kasasiki3/HIDtaiko" target="_blank" rel="noopener">作る<span class="cta-sub">設計データ・組み立て手順</span></a>
+        <a class="cta cta-shop" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">買う<span class="cta-sub">完成品・パーツ</span></a>
+        <a class="cta" href="https://x.com/kasashiki" target="_blank" rel="noopener">聞く<span class="cta-sub">@kasashiki のDMへ</span></a>
+      </nav>
+    </div>
+    <nav class="footer-links" aria-label="フッターリンク">
+      <a href="https://github.com/kasasiki3/HIDtaiko" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://zenn.dev/kasashiki/articles/7bf286b8120f90" target="_blank" rel="noopener">Zenn（基盤制作）</a>
+      <a href="https://zenn.dev/kasashiki/articles/28d31814b8bf86" target="_blank" rel="noopener">Zenn（接続器制作）</a>
+      <a href="https://kasasiki3.github.io/HIDtaiko/v12.html" target="_blank" rel="noopener">感度変更サイト</a>
+      <a href="https://a360.co/4iZLSSL" target="_blank" rel="noopener">3Dデータ</a>
+      <a href="https://www.youtube.com/channel/UCN6--q2vATunlbG3SnSLd7g" target="_blank" rel="noopener">YouTube</a>
+      <a href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">メルカリ</a>
+      <a href="https://x.com/kasashiki" target="_blank" rel="noopener">X</a>
+    </nav>
+    <div class="footer-brand"><span class="dot"></span>HIDtaiko</div>
+    <p class="footer-license">Apache-2.0 License · 設計データは <a href="https://github.com/kasasiki3/HIDtaiko" target="_blank" rel="noopener">GitHub</a> で公開中</p>
+  </div>
+</footer>
+
+</body>
+</html>
