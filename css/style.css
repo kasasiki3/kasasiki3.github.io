@@ -57,7 +57,7 @@ a{ color:inherit; text-decoration:none; }
   display:flex; align-items:center; gap:.6ch;
   font-weight:900; font-size:clamp(19px,2vw,24px); letter-spacing:.01em;
 }
-.brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--don); display:inline-block; }
+.brand-icon{ width:1.3em; height:1.3em; display:block; }
 .tagline{ margin-top:4px; font-size:13px; color:var(--muted); }
 /* ナビは6本。名前＋役割の2段で、開かずに行き先が分かるようにする */
 .site-nav{ display:flex; flex-wrap:wrap; }
