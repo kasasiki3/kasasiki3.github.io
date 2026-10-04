@@ -37,7 +37,7 @@
   "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
 }}
 </script>
-<script type="module" src="js/exploded-view.js?v=20260817-04"></script>
+<script type="module" src="js/exploded-view.js?v=20261004-01"></script>
 </head>
 <body>
 
@@ -122,12 +122,12 @@
         <li><span class="pn">03</span><b>防振ゴム・ネジ</b><span class="pd">VD2-2015M6 ×14／M6ネジ・ナット・ワッシャー 各14</span></li>
         <li><span class="pn">04</span><b>スペーサー</b><span class="pd">面と縁の高さ調整。0.2 / 0.4 / 0.6mm の3Dプリント品</span></li>
         <li><span class="pn">05</span><b>センサー ×4</b><span class="pd">左縁・左面・右面・右縁。AT3040 または GSS-4SA</span></li>
-        <li><span class="pn">06</span><b>センサー固定パーツ</b><span class="pd">AT3040用の3Dプリント品。M3L8ネジで固定</span></li>
+        <li><span class="pn">06</span><b>センサー固定パーツ</b><span class="pd">AT3040用の3Dプリント品。M3L6ネジで固定</span></li>
         <li><span class="pn">07</span><b>接続器</b><span class="pd">4本のセンサーを受けてPCへキー入力を送る。最安800円</span></li>
       </ol>
       <p class="note">02〜04 が太鼓基盤（木工）、05〜07 が信号まわり（電子工作）です。</p>
 
-      <h3 class="sub-h">¥800 は、接続器だけの値段。</h3>
+      <h3 class="sub-h">800円で作れる接続器。</h3>
       <div class="table-wrap">
         <table class="grid slim">
           <caption class="vh">部品ごとの費用</caption>
@@ -142,7 +142,7 @@
         </table>
       </div>
       <p class="note">※金額は購入先や相場によって異なります。</p>
-      <p class="note">選択肢は2つ。RP2040 のほうが最新・最安・最高性能。1.3接続器 を選ぶ理由は、自分でコードを書き換えたい場合だけです。</p>
+      <p class="note">選択肢は2つ。RP2040 のほうが最新・最安・最高性能。ATmega32U4接続器 を選ぶ理由は、自分でコードを書き換えたい場合だけです。</p>
     </section>
 
     <!-- 01 接続器 -->
@@ -153,9 +153,9 @@
 
       <div class="table-wrap">
         <table class="grid cmp">
-          <caption class="vh">RP2040接続器と1.3接続器の比較</caption>
+          <caption class="vh">RP2040接続器とATmega32U4接続器の比較</caption>
           <thead>
-            <tr><th scope="col">項目</th><th scope="col" class="pick">RP2040接続器<span class="pick-tag">推奨</span></th><th scope="col">1.3接続器</th></tr>
+            <tr><th scope="col">項目</th><th scope="col" class="pick">RP2040接続器<span class="pick-tag">推奨</span></th><th scope="col">ATmega32U4接続器</th></tr>
           </thead>
           <tbody>
             <tr><th scope="row">制作費用</th><td class="pick"><span class="num">最安 800円</span><br><small class="cell-note">材料費のみ。道具・送料別</small></td><td><span class="num">約1,500円</span></td></tr>
@@ -167,11 +167,11 @@
             <tr><th scope="row">改造のしやすさ</th><td class="pick">難しい</td><td>簡単</td></tr>
             <tr><th scope="row">プレイ動画</th>
               <td class="pick"><a class="text-link" href="https://www.youtube.com/watch?v=wMSDLN9h2Co" target="_blank" rel="noopener" aria-label="RP2040接続器のプレイ動画（YouTube）">YouTube</a></td>
-              <td><a class="text-link" href="https://www.youtube.com/watch?v=Z8ZBOPpMMD8" target="_blank" rel="noopener" aria-label="1.3接続器のプレイ動画（YouTube）">YouTube</a></td>
+              <td><a class="text-link" href="https://www.youtube.com/watch?v=Z8ZBOPpMMD8" target="_blank" rel="noopener" aria-label="ATmega32U4接続器のプレイ動画（YouTube）">YouTube</a></td>
             </tr>
             <tr><th scope="row">制作ガイド</th>
               <td class="pick"><a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/blob/master/HIDtaiko_connector_rp2040/rp2040readme.md" target="_blank" rel="noopener" aria-label="RP2040接続器の制作ガイド（GitHub）">GitHub</a></td>
-              <td><a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/HIDtaiko_connector_ver1.3" target="_blank" rel="noopener" aria-label="1.3接続器の制作ガイド（GitHub）">GitHub</a></td>
+              <td><a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/HIDtaiko_connector_ver1.3" target="_blank" rel="noopener" aria-label="ATmega32U4接続器の制作ガイド（GitHub）">GitHub</a></td>
             </tr>
           </tbody>
         </table>
@@ -181,10 +181,10 @@
         <div class="card pick card-merge">
           <div class="card-merge-grid">
             <div class="card-media"><!-- メルカリ出品用の切り抜き（mercari-lister/thumb/asset_cut.png）を白合成→rembg(birefnet)で縁の白もやを除去し800pxに（_cutout/rembg_cut/） -->
-              <img class="card-img" src="images/rp2040-connector-v13.webp?v=20261003b" alt="RP2040接続器 ver1.3" width="800" height="760" loading="lazy" decoding="async"></div>
+              <img class="card-img" src="images/rp2040-connector-v13.webp?v=20261003b" alt="RP2040接続器の完成品" width="800" height="760" loading="lazy" decoding="async"></div>
             <div class="card-merge-body">
               <div class="card-head"><span class="badge">推奨モデル</span></div>
-              <h3>RP2040 接続器 ver1.3</h3>
+              <h3>RP2040 接続器</h3>
               <div class="price">最安 800円<span class="sub">Pico SDK</span></div>
               <p class="note">材料費のみ。道具と送料は含みません。</p>
               <dl class="spec-list">
@@ -199,25 +199,25 @@
               </p>
             </div>
             <div class="card-merge-parts">
-              <h3>構成部品（ver1.3）</h3>
+              <h3>構成部品</h3>
               <div class="table-wrap">
                 <table class="grid slim">
                   <caption class="vh">RP2040接続器の構成部品</caption>
                   <thead><tr><th scope="col">部品</th><th scope="col">数量</th></tr></thead>
                   <tbody>
                     <tr><td>RP2040 Zero（ADCピン4本）</td><td>1</td></tr>
-                    <tr><td>1MΩ抵抗（0805）</td><td>4</td></tr>
-                    <tr><td>1KΩ抵抗（0805）</td><td>4</td></tr>
-                    <tr><td>ショットキーバリアダイオード（B0540W）</td><td>8</td></tr>
+                    <tr><td>1MΩ抵抗</td><td>4</td></tr>
+                    <tr><td>1KΩ抵抗</td><td>4</td></tr>
+                    <tr><td>ショットキーバリアダイオード</td><td>8</td></tr>
                     <tr><td>スライドスイッチ（SS12D00）</td><td>1</td></tr>
                     <tr><td>4×2 ピンヘッダ</td><td>1</td></tr>
-                    <tr><td>基板（ver1.3）</td><td>1</td></tr>
+                    <tr><td>ユニバーサル基板</td><td>1</td></tr>
                     <tr><td>M3×5mm ネジ</td><td>4</td></tr>
                     <tr><td>3Dプリントケース</td><td>1</td></tr>
                   </tbody>
                 </table>
               </div>
-              <p class="note">必要な道具ははんだごてとニッパー。はんだ付けの知識と、簡単な回路図を読む力が必要です。完成品は<a class="text-link" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">メルカリ</a>でも販売しています。</p>
+              <p class="note">部品はすべてリード部品で、ユニバーサル基板に組めます（基板の発注は不要）。必要な道具ははんだごてとニッパー。はんだ付けの知識と、簡単な回路図を読む力が必要です。完成品は<a class="text-link" href="https://jp.mercari.com/user/profile/175469287" target="_blank" rel="noopener">メルカリ</a>でも販売しています。</p>
             </div>
           </div>
         </div>
@@ -297,7 +297,7 @@
           <div class="card-media"><img class="card-img" src="images/at3040.webp?v=20260820" alt="AT3040 ピエゾセンサー" width="1000" height="667" loading="lazy" decoding="async"></div>
           <h3>AT3040</h3>
           <div class="price">5個 343円<span class="sub">1個あたり約69円</span></div>
-          <p class="desc">安価で入手しやすいピエゾセンサー。3Dプリントの固定パーツ（M3L8ネジ）を使うと、より確実に固定できます。</p>
+          <p class="desc">安価で入手しやすいピエゾセンサー。3Dプリントの固定パーツ（M3L6ネジ）を使うと、より確実に固定できます。</p>
           <p class="links-row">
             <a class="text-link" href="https://github.com/kasasiki3/HIDtaiko/tree/master/drumhead/AT3040sensor_look" target="_blank" rel="noopener">固定パーツ STL（GitHub）</a>
           </p>

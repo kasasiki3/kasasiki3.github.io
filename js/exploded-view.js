@@ -269,6 +269,12 @@ controls.enableZoom = true;
 controls.minPolarAngle = 0.15;
 controls.maxPolarAngle = Math.PI * 0.85;
 
+// canvas はヒーロー全体を覆うので、基準枠の外のホイールは OrbitControls に渡さずページスクロールに使う
+stage.addEventListener('wheel', e => {
+  const r = wrap.getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) e.stopPropagation();
+}, { capture: true });
+
 // 2つのモデルが揃ってからシーンを組み立てる
 Promise.all([
   // GLB にもキャッシュバスターを付ける。付けていなかったため、索引を UINT16 に落として
